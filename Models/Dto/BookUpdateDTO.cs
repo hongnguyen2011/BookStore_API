@@ -4,8 +4,6 @@ namespace BookStore_API.Models.Dto
 {
     public class BookUpdateDTO
     {
-        public class MenuItemUpdateDTO
-        {
             [Key]
             public int Id { get; set; }
             [Required]
@@ -16,6 +14,6 @@ namespace BookStore_API.Models.Dto
             [Range(1, int.MaxValue)]
             public double Price { get; set; }
             public IFormFile File { get; set; }
-        }
+        
     }
 }

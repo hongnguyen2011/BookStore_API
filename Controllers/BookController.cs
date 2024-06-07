@@ -6,6 +6,7 @@ using BookStore_API.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using static BookStore_API.Models.Dto.BookUpdateDTO;
 
 namespace BookStore_API.Controllers
 {
@@ -79,6 +80,57 @@ namespace BookStore_API.Controllers
                     _response.Result = BookToCreate;
                     _response.StatusCode = HttpStatusCode.Created;
                     return CreatedAtRoute("GetMenuItem", new { id = BookToCreate.Id }, _response);
+
+                }
+                else
+                {
+                    _response.IsSuccess = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages
+                     = new List<string>() { ex.ToString() };
+            }
+
+            return _response;
+        }
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> UpdateBook(int id, [FromForm] BookUpdateDTO BookUpdateDTO)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (BookUpdateDTO == null || id != BookUpdateDTO.Id)
+                    {
+                        return BadRequest();
+                    }
+
+                    Book BookFromDb = await _db.BooksList.FindAsync(id);
+                    if (BookFromDb == null)
+                    {
+                        return BadRequest();
+                    }
+
+                    BookFromDb.Name = BookUpdateDTO.Name;
+                    BookFromDb.Price = BookUpdateDTO.Price;
+                    BookFromDb.Category = BookUpdateDTO.Category;
+                    BookFromDb.SpecialTag = BookUpdateDTO.SpecialTag;
+                    BookFromDb.Description = BookUpdateDTO.Description;
+
+                    if (BookUpdateDTO.File != null && BookUpdateDTO.File.Length > 0)
+                    {
+                        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(BookUpdateDTO.File.FileName)}";
+                        await _blobService.DeleteBlob(BookFromDb.Image.Split('/').Last(), SD.SD_Storage_Container);
+                        BookFromDb.Image = await _blobService.UploadBlob(fileName, SD.SD_Storage_Container, BookUpdateDTO.File);
+                    }
+
+                    _db.BooksList.Update(BookFromDb);
+                    _db.SaveChanges();
+                    _response.StatusCode = HttpStatusCode.NoContent;
+                    return Ok(_response);
 
                 }
                 else
