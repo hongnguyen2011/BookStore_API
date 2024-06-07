@@ -38,6 +38,7 @@ namespace BookStore_API.Controllers
             if (id == 0)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
                 return BadRequest(_response);
             }
             Book book = _db.BooksList.FirstOrDefault(u => u.Id == id);
@@ -45,6 +46,7 @@ namespace BookStore_API.Controllers
             if (book == null)
             {
                 _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
                 return NotFound(_response);
             }
             _response.Result = book;
@@ -63,6 +65,8 @@ namespace BookStore_API.Controllers
                 {
                     if (BookCreateDTO.File == null || BookCreateDTO.File.Length == 0)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
                     string fileName = $"{Guid.NewGuid()}{Path.GetExtension(BookCreateDTO.File.FileName)}";
@@ -107,12 +111,16 @@ namespace BookStore_API.Controllers
                 {
                     if (BookUpdateDTO == null || id != BookUpdateDTO.Id)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
 
                     Book BookFromDb = await _db.BooksList.FindAsync(id);
                     if (BookFromDb == null)
                     {
+                        _response.StatusCode = HttpStatusCode.BadRequest;
+                        _response.IsSuccess = false;
                         return BadRequest();
                     }
 
@@ -158,12 +166,16 @@ namespace BookStore_API.Controllers
             {
                 if (id == 0)
                 {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest();
                 }
 
                 Book menuItemFromDb = await _db.BooksList.FindAsync(id);
                 if (menuItemFromDb == null)
                 {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
                     return BadRequest();
                 }
                 await _blobService.DeleteBlob(menuItemFromDb.Image.Split('/').Last(), SD.SD_Storage_Container);
