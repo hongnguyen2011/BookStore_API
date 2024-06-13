@@ -161,5 +161,45 @@ namespace RedMango_API.Controllers
             _response.IsSuccess = true;
             return Ok(_response);
         }
+
+        [HttpPost("changepassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO model)
+        {
+            ApplicationUser userFromDb = await _userManager.FindByNameAsync(model.UserName);
+            if (userFromDb == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("User not found");
+                return NotFound(_response);
+            }
+            // Verify the current password
+            bool isCurrentPasswordValid = await _userManager.CheckPasswordAsync(userFromDb, model.CurrentPassword);
+
+            if (!isCurrentPasswordValid)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Current password is incorrect");
+                return BadRequest(_response);
+            }
+
+            // change the password
+            // Change the password
+            IdentityResult changePasswordResult = await _userManager.ChangePasswordAsync(userFromDb, model.CurrentPassword, model.NewPassword);
+
+            if (!changePasswordResult.Succeeded)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.AddRange(changePasswordResult.Errors.Select(e => e.Description));
+                return BadRequest(_response);
+            }
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return Ok(_response);
+
+        }
     }
 }
