@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Net;
+using Microsoft.AspNetCore.Authentication;
 
 namespace RedMango_API.Controllers
 {
@@ -147,6 +148,18 @@ namespace RedMango_API.Controllers
             _response.ErrorMessages.Add("Error while registering");
             return BadRequest(_response);
 
+        }
+
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.IsSuccess = true;
+            return Ok(_response);
         }
     }
 }
